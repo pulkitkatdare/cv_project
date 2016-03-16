@@ -104,5 +104,96 @@ for i in range(l[0]):
  					intersection.append([i,j,x_intersection,y_intersection,0]);
  					intersection_invalid.append([i,j,x_intersection,y_intersection,0]);
 
+N = np.shape(intersection_valid);
+w_1 = 0.25; 
+w_2 = 0.75;
+vote_data = np.zeros((N[0],8))
+vote_data_valid = [];
+vote_data_invalid = [];
+for i in range(N[0]):
+	I = intersection_valid[i][0];
+	J = intersection_valid[i][1];
+	x_mid_I =  (line[I,0]+line[I,2])/2;
+	y_mid_I =  (line[I,1]+line[I,3])/2;
+	if ((line[I,3] == line[I,1]) & (line[J,2] == line[J,0])):
+		d_1 = float("inf");
+	elif((line[I,3] == line[I,1])):
+		slope2 = (line[J,3]-line[J,1])/(line[J,2]-line[J,0]);
+		x_int = x_mid_I;
+		y_int = line[J,1] + slope2*(x_int-line[J,0]);
+		d_1 = math.sqrt((x_mid_I-x_int)**2 + (y_mid_I-y_int)**2);
+	elif ((line[J,2] == line[J,0])):
+		slope1 =(line[I,0]-line[I,2])/(line[I,3]-line[I,1]);
+		x_int = line[J,0];
+		y_int = y_mid_I +slope1*(x_int-x_mid_I);
+		d_1 = math.sqrt((x_mid_I-x_int)**2 + (y_mid_I-y_int)**2);
+	else :
+		slope1 =(line[I,0]-line[I,2])/(line[I,3]-line[I,1]);
+		slope2 = (line[J,3]-line[J,1])/(line[J,2]-line[J,0]);
+		if (slope1 == slope2):
+			d_1 = float("inf");
+		else :
+			x_int = ((y_mid_I - line[J,1])-slope1*x_mid_I +slope2*line[J,0])/(slope2-slope1);
+			y_int = y_mid_I +slope1*(x_int-x_mid_I);
+			d_1 = math.sqrt((x_mid_I-x_int)**2 + (y_mid_I-y_int)**2); 
+	#(y-y_mid)/(x-x_mid) = slope1 ; 
+	#y = y_mid +slope1*(x-x_mid)   (i)
+	#(y-line[J,1])/(x-line[J,0]) = slope2 ; 
+	# y = line[j,1] + slope2*(x-line[j,0])   (ii)
+	#y_mid - line[j,1] = (slope2-slope1)*x +slope1*x_mid -slope2*line[j,0]
+	#((y_mid - line[j,1])-slope1*x_mid +slope2*line[j,0])/(slope2-slope1)=x
+	
+	##############################################################
+	x_mid_J =  (line[J,0]+line[J,2])/2;
+	y_mid_J =  (line[J,1]+line[J,3])/2;
+	if ((line[J,3] == line[J,1]) & (line[I,2] == line[I,0])):
+		d_2 = float("inf");
+	elif((line[J,3] == line[J,1])):
+		slope2 =(line[I,3]-line[I,1])/(line[I,2]-line[I,0]);
+		x_int = x_mid_J;
+		y_int = line[I,1] + slope2*(x_int-line[I,0]);
+		d_2 = math.sqrt((x_mid_J-x_int)**2 + (y_mid_J-y_int)**2);
+	elif ((line[I,2] == line[I,0])):
+		slope1 =(line[J,0]-line[J,2])/(line[J,3]-line[J,1]);
+		x_int = line[I,0];
+		y_int = y_mid_J +slope1*(x_int-x_mid_J);
+		d_2 = math.sqrt((x_mid_J-x_int)**2 + (y_mid_J-y_int)**2);
+	else :
+		slope2 =(line[I,3]-line[I,1])/(line[I,2]-line[I,0]);
+		slope1 = (line[J,0]-line[J,2])/(line[J,3]-line[J,1]);
+		if (slope1 == slope2):
+			d_2 = float("inf");
+		else :
+			x_int = ((y_mid_J - line[I,1])-slope1*x_mid_J +slope2*line[I,0])/(slope2-slope1);
+			y_int = y_mid_I +slope1*(x_int-x_mid_J);
+			d_2 = math.sqrt((x_mid_I-x_int)**2 + (y_mid_I-y_int)**2); 
+		
+	if ((d_1 ==float("inf")) | (d_2 ==float("inf"))):
+		length1 = math.sqrt((line[I,0]-line[I,2])**2 + (line[I,1]-line[I,3])**2);
+		length2 = math.sqrt((line[J,0]-line[J,2])**2 + (line[J,1]-line[J,3])**2);
+		data = np.asarray([I,J,intersection_valid[i][2],intersection_valid[i][3],d_1,d_2,length1,length2]);
+		vote_data = data;
+		vote_data_invalid.append(data);
+	else : 
+		length1 = math.sqrt((line[I,0]-line[I,2])**2 + (line[I,1]-line[I,3])**2);
+		length2 = math.sqrt((line[J,0]-line[J,2])**2 + (line[J,1]-line[J,3])**2);
+		#print d_1,d_2
+		data = np.asarray([I,J,intersection_valid[i][2],intersection_valid[i][3],d_1,d_2,length1,length2]);
+		vote_data = data;
+		vote_data_valid.append(data);
 
+	#(y-y_mid)/(x-x_mid) = slope1 ; 
+	#y = y_mid +slope1*(x-x_mid)   (i)
+	#(y-line[J,1])/(x-line[J,0]) = slope2 ; 
+	# y = line[j,1] + slope2*(x-line[j,0])   (ii)
+	#y_mid - line[j,1] = (slope2-slope1)*x +slope1*x_mid -slope2*line[j,0]
+	#((y_mid - line[j,1])-slope1*x_mid +slope2*line[j,0])/(slope2-slope1)=x
+	#x_int = ((y_mid_J - line[I,1])-slope1*x_mid_J +slope2*line[I,0])/(slope2-slope1);
+	#y_int = y_mid_J +slope1*(x_int-x_mid);
+	#d_2 = math.sqrt((x_mid_J-x_int)**2 + (y_mid_J-y_int)**2);
+
+
+
+print vote_data_valid[:][4]
+#print max(vote_data_invalid[:][5])
 
