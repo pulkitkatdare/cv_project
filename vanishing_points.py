@@ -107,6 +107,7 @@ for i in range(l[0]):
 N = np.shape(intersection_valid);
 w_1 = 0.25; 
 w_2 = 0.75;
+d_max = 0 ;
 vote_data = np.zeros((N[0],8))
 vote_data_valid = [];
 vote_data_invalid = [];
@@ -175,6 +176,8 @@ for i in range(N[0]):
 		vote_data = data;
 		vote_data_invalid.append(data);
 	else : 
+		if ((d_max  < d_1) | (d_max < d_2) ):
+			d_max = max(d_1,d_2);
 		length1 = math.sqrt((line[I,0]-line[I,2])**2 + (line[I,1]-line[I,3])**2);
 		length2 = math.sqrt((line[J,0]-line[J,2])**2 + (line[J,1]-line[J,3])**2);
 		#print d_1,d_2
@@ -194,6 +197,13 @@ for i in range(N[0]):
 
 
 
-print vote_data_valid[:][4]
+print d_max;
+M =  np.shape(vote_data_valid)
 #print max(vote_data_invalid[:][5])
+vote = np.zeros((M[0],9));
+for i in range(M[0]):
+	cost = w_1*(1-(vote_data_valid[i][4]/d_max))+w_1*(1-(vote_data_valid[i][5]/d_max)) + w_2*(vote_data_valid[i][6]/maxlength)+w_2*(vote_data_valid[i][7]/maxlength);
+	data = np.asarray([vote_data_valid[i][0],vote_data_valid[i][1],vote_data_valid[i][2],vote_data_valid[i][3],vote_data_valid[i][4],vote_data_valid[i][5],vote_data_valid[i][6],vote_data_valid[i][7],cost]);
+	vote[i,:] = data;
 
+print np.argmax(vote[:,8])
