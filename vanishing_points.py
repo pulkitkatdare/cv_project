@@ -7,7 +7,7 @@ from PIL import Image
 from tempfile import TemporaryFile
 import pdb
 
-img = Image.open('groundtruth/Images/1-deer-valley-living-room6.jpg')
+img = Image.open('groundtruth/Images/0000000041.jpg')
 img = np.asarray(img);
 edges = cv2.Canny(img,100,200);
 
@@ -18,9 +18,9 @@ edges = cv2.Canny(img,100,200);
 #print im1.dtype; Check points in the code 
 #print im1.dtype; #check points in the code
 ###############################
-img = cv2.imread('groundtruth/Images/1-deer-valley-living-room6.jpg')
+img = cv2.imread('groundtruth/Images/0000000041.jpg')
 gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-edges = cv2.Canny(gray,50,150,apertureSize = 3)
+edges = cv2.Canny(gray,50,170,apertureSize = 3)
 minLineLength = 100
 maxLineGap = 10
 lines = cv2.HoughLinesP(edges,1,np.pi/180,100,minLineLength,maxLineGap)
@@ -55,7 +55,7 @@ intersection = [];
 intersection_valid = [];
 intersection_invalid= [];
 for i in range(l[0]):
-	for j in range(i,l[0]):
+	for j in range(i+1,l[0]):
 		if (((line[j,2]-line[j,0])==0) & ((line[i,2]-line[i,0])==0)):
 			intersection.append([i,j,float("inf"),float("inf"),1]);
 			intersection_valid.append([i,j,float("inf"),float("inf"),1]);#line1,line2,x_intersection,y_interection,outlier(1(for outlier) or 0(inlier))
@@ -105,8 +105,8 @@ for i in range(l[0]):
  					intersection_invalid.append([i,j,x_intersection,y_intersection,0]);
 
 N = np.shape(intersection_valid);
-w_1 = 0.25; 
-w_2 = 0.75;
+w_1 = 0.10; 
+w_2 = 0.99;
 d_max = 0 ;
 vote_data = np.zeros((N[0],8))
 vote_data_valid = [];
@@ -201,9 +201,110 @@ print d_max;
 M =  np.shape(vote_data_valid)
 #print max(vote_data_invalid[:][5])
 vote = np.zeros((M[0],9));
+print M[0]
+
 for i in range(M[0]):
 	cost = w_1*(1-(vote_data_valid[i][4]/d_max))+w_1*(1-(vote_data_valid[i][5]/d_max)) + w_2*(vote_data_valid[i][6]/maxlength)+w_2*(vote_data_valid[i][7]/maxlength);
 	data = np.asarray([vote_data_valid[i][0],vote_data_valid[i][1],vote_data_valid[i][2],vote_data_valid[i][3],vote_data_valid[i][4],vote_data_valid[i][5],vote_data_valid[i][6],vote_data_valid[i][7],cost]);
 	vote[i,:] = data;
+perp_data_valid = np.zeros((M[0]*(M[0]-1)*(M[0]-2),16));
+#print (M[0]*(M[0]-1)*(M[0]-2)
+count = 0 ;
+for i in range(M[0]):
+	for j in range(i+1,M[0]):
+		for k in range(j+1,M[0]):
+			print count 
+			#print vote[i,2]
+			count = count + 1 ; 
+			diff1 = (float(vote[i,2])*float(vote[j,2]) - float(vote[i,3])*float(vote[j,3]))**2; 
+			diff2 = (float(vote[j,2])*float(vote[k,2]) - float(vote[j,3])*float(vote[k,3]))**2;
+			data = np.asarray([i,j,k,vote[i,2],vote[i,3],vote[j,2],vote[j,3],vote[k,2],vote[k,3],diff1,diff2,diff1+diff2,vote[i,8],vote[j,8],vote[k,8],vote[i,8]+vote[j,8]+vote[k,8]])
+			perp_data_valid[count,:] = data;
 
-print np.argmax(vote[:,8])
+n= np.argmax(vote[:,8]);
+m = np.argsort(perp_data_valid[:,11])[0];
+img = cv2.imread('groundtruth/Images/0000000041.jpg')
+print vote[n,0],vote[n,1]
+x1 = int(line[vote[n,0],0]);
+y1 = int(line[vote[n,0],1]);
+x2 = int(line[vote[n,0],2]);
+y2 = int(line[vote[n,0],3]);
+cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
+x1 = int(line[vote[n,1],0]);
+y1 = int(line[vote[n,1],1]);
+x2 = int(line[vote[n,1],2]);
+y2 = int(line[vote[n,1],3]);
+cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
+cv2.imwrite('houghlines_new.jpg',img)
+################################################
+img = cv2.imread('groundtruth/Images/0000000041.jpg')
+x1 = int(line[vote[perp_data_valid[m,0],0],0]);
+y1 = int(line[vote[perp_data_valid[m,0],0],1]);
+x2 = int(line[vote[perp_data_valid[m,0],0],2]);
+y2 = int(line[vote[perp_data_valid[m,0],0],3]);
+cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
+x1 = int(line[vote[perp_data_valid[m,0],1],0]);
+y1 = int(line[vote[perp_data_valid[m,0],1],1]);
+x2 = int(line[vote[perp_data_valid[m,0],1],2]);
+y2 = int(line[vote[perp_data_valid[m,0],1],3]);
+cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
+cv2.imwrite('houghlines_new_perp1.jpg',img)
+################################################
+img = cv2.imread('groundtruth/Images/0000000041.jpg')
+x1 = int(line[vote[perp_data_valid[m,1],0],0]);
+y1 = int(line[vote[perp_data_valid[m,1],0],1]);
+x2 = int(line[vote[perp_data_valid[m,1],0],2]);
+y2 = int(line[vote[perp_data_valid[m,1],0],3]);
+cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
+x1 = int(line[vote[perp_data_valid[m,1],1],0]);
+y1 = int(line[vote[perp_data_valid[m,1],1],1]);
+x2 = int(line[vote[perp_data_valid[m,1],1],2]);
+y2 = int(line[vote[perp_data_valid[m,1],1],3]);
+cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
+cv2.imwrite('houghlines_new_perp2.jpg',img)
+################################################
+img = cv2.imread('groundtruth/Images/0000000041.jpg')
+x1 = int(line[vote[perp_data_valid[m,2],0],0]);
+y1 = int(line[vote[perp_data_valid[m,2],0],1]);
+x2 = int(line[vote[perp_data_valid[m,2],0],2]);
+y2 = int(line[vote[perp_data_valid[m,2],0],3]);
+cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
+x1 = int(line[vote[perp_data_valid[m,2],1],0]);
+y1 = int(line[vote[perp_data_valid[m,2],1],1]);
+x2 = int(line[vote[perp_data_valid[m,2],1],2]);
+y2 = int(line[vote[perp_data_valid[m,2],1],3]);
+cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
+cv2.imwrite('houghlines_new_perp3.jpg',img)
+################################################
+img = cv2.imread('groundtruth/Images/0000000041.jpg')
+x1 = int(line[vote[perp_data_valid[m,0],0],0]);
+y1 = int(line[vote[perp_data_valid[m,0],0],1]);
+x2 = int(line[vote[perp_data_valid[m,0],0],2]);
+y2 = int(line[vote[perp_data_valid[m,0],0],3]);
+cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
+x1 = int(line[vote[perp_data_valid[m,0],1],0]);
+y1 = int(line[vote[perp_data_valid[m,0],1],1]);
+x2 = int(line[vote[perp_data_valid[m,0],1],2]);
+y2 = int(line[vote[perp_data_valid[m,0],1],3]);
+cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
+x1 = int(line[vote[perp_data_valid[m,1],0],0]);
+y1 = int(line[vote[perp_data_valid[m,1],0],1]);
+x2 = int(line[vote[perp_data_valid[m,1],0],2]);
+y2 = int(line[vote[perp_data_valid[m,1],0],3]);
+cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
+x1 = int(line[vote[perp_data_valid[m,1],1],0]);
+y1 = int(line[vote[perp_data_valid[m,1],1],1]);
+x2 = int(line[vote[perp_data_valid[m,1],1],2]);
+y2 = int(line[vote[perp_data_valid[m,1],1],3]);
+cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
+x1 = int(line[vote[perp_data_valid[m,2],0],0]);
+y1 = int(line[vote[perp_data_valid[m,2],0],1]);
+x2 = int(line[vote[perp_data_valid[m,2],0],2]);
+y2 = int(line[vote[perp_data_valid[m,2],0],3]);
+cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
+x1 = int(line[vote[perp_data_valid[m,2],1],0]);
+y1 = int(line[vote[perp_data_valid[m,2],1],1]);
+x2 = int(line[vote[perp_data_valid[m,2],1],2]);
+y2 = int(line[vote[perp_data_valid[m,2],1],3]);
+cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
+cv2.imwrite('houghlines_new_perp.jpg',img)
