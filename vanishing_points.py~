@@ -262,7 +262,7 @@ d_max = max(max(vote[:,0]),max(vote[:,1]));
 t_alpha = max(max(vote[:,5]),max(vote[:,6]));
 t_alpha_min = min(min(vote[:,5]),min(vote[:,6]));
 print t_alpha
-t_alpha =(0.6*t_alpha + 0.4*t_alpha_min);
+t_alpha =(0.2*t_alpha + 0.8*t_alpha_min);
 d_max       = d_max/4;
 print d_max; 
 print t_alpha;
@@ -332,10 +332,9 @@ while (i < N[0]):
 					dot3 = (x_int2 - x_int3)*(x_int1 - x_int3) + (y_int2-y_int3)*(y_int1-y_int3) ;
 					if(dot3 > 0 ):
 						if((vote[m[i-1],0] < d_max) and (vote[m[i-1],1] < d_max) and (vote[m[j-1],0] < d_max) and (vote[m[j-1],1] < d_max) and (vote[m[k-1],0] < d_max) and (vote[m[k-1],1] < d_max)):
-							if((vote[m[i-1],5] < t_alpha) and (vote[m[i-1],6] < t_alpha) and (vote[m[j-1],5] < t_alpha) and (vote[m[j-1],6] < t_alpha) and (vote[m[k-1],5] < t_alpha) and (vote[m[k-1],6] < t_alpha)):
-								k_test = 1; 
-								print i,j,k
-								break;
+							k_test = 1; 
+							print i,j,k
+							break;
 		if (k_test == 1):
 			break;
 	if(k_test == 1):
